@@ -4,7 +4,7 @@ Project-local conventions win over this file when they conflict.
 
 ## Skills
 
-Skills live in `skills/`, discoverable via `skills.sh`. Before starting a task, check what's installed. If an uninstalled skill would meaningfully help meet my standards for this task, recommend it and why, don't install without asking. If a relevant skill is already installed, read it and use it. Don't duplicate skill content in this file.
+Skills live in `$USERPROFILE\.agents\skills`, `~|PROJECT\.agents\skills`, discoverable via `skills.sh`. Before starting a task, check what's installed. If an uninstalled skill would meaningfully help meet my standards for this task, recommend it and why, don't install without asking. If a relevant skill is already installed, read it and use it. Don't duplicate skill content in this file.
 
 ## Decision-making
 
