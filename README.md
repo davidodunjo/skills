@@ -10,5 +10,5 @@ npx skills add davidodunjo/skills
 
 ## Skills
 
-- **coding-principles**
-- **tsx-patterns**
+- **writing-code**
+- **writing-tsx**
