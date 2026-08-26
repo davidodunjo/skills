@@ -1,5 +1,5 @@
 ---
-name: designing-as
+name: designing-uis
 description: Use when designing or generating any UI. Suppresses default aggregated-dataset design instincts in favor of a specific designer's taste and patterns.
 ---
 
