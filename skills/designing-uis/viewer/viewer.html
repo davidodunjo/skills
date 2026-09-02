@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UI mockups</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat-nova.cdn.min.css" />
+
+<style>
+  :root {
+    --stage-height: 780px;
+    --handle-width: 0.75rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  /* Basecoat's CDN bundle ships components only, so utilities are defined here. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  html, body {
+    background: var(--background);
+    color: var(--foreground);
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    padding: 1.5rem 1rem 2.5rem;
+    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+  }
+
+  .viewer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.75rem 0 0.5rem;
+  }
+
+  .dimensions {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted-foreground);
+  }
+
+  .controls {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 2rem;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .controls button {
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--radius) - 4px);
+    background: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+  }
+
+  .controls button:hover { background: var(--accent); }
+  .controls button[aria-pressed="true"] { background: var(--accent); color: var(--accent-foreground); }
+  .controls button svg { width: 14px; height: 14px; }
+
+  .controls .divider {
+    width: 1px;
+    height: 1rem;
+    background: var(--border);
+  }
+
+  .controls button:focus-visible,
+  .handle:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+  }
+
+  .stage {
+    position: relative;
+    height: var(--stage-height);
+    overflow: hidden;
+  }
+
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0 var(--handle-width) 0 0;
+    border-radius: 0.75rem;
+    background-image: radial-gradient(color-mix(in oklab, var(--muted-foreground) 45%, transparent) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .panels {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .panel {
+    flex: none;
+    width: calc(var(--preview-width, 100%) - var(--handle-width));
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--background);
+  }
+
+  .panel.animate { transition: width 0.2s ease; }
+
+  .panel iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--background);
+  }
+
+  .handle {
+    position: relative;
+    flex: none;
+    width: var(--handle-width);
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  .handle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 3px;
+    width: 6px;
+    height: 2rem;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--border);
+    transition: height 0.12s ease, background-color 0.12s ease;
+  }
+
+  .handle:hover::after,
+  .handle.dragging::after {
+    height: 2.5rem;
+    background: var(--muted-foreground);
+  }
+
+  @media (max-width: 900px) {
+    :root { --stage-height: 560px; --handle-width: 0px; }
+    .handle { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel.animate { transition: none; }
+  }
+</style>
+</head>
+
+<body>
+  <section class="viewer">
+    <div class="toolbar">
+      <div class="controls" role="group" aria-label="Preview controls">
+        <button data-width="100" title="Desktop"><i data-lucide="monitor"></i><span class="sr-only">Desktop</span></button>
+        <button data-width="60" title="Tablet"><i data-lucide="tablet"></i><span class="sr-only">Tablet</span></button>
+        <button data-width="30" title="Mobile"><i data-lucide="smartphone"></i><span class="sr-only">Mobile</span></button>
+        <span class="divider"></span>
+        <button id="theme"></button>
+        <span class="divider"></span>
+        <button id="open"><i data-lucide="fullscreen"></i><span class="sr-only">Open in new tab</span></button>
+        <button id="reload"><i data-lucide="rotate-cw"></i><span class="sr-only">Reload preview</span></button>
+      </div>
+
+      <span class="dimensions" id="dimensions"></span>
+    </div>
+
+    <div class="stage">
+      <div class="panels" id="panels">
+        <div class="panel" id="panel" style="--preview-width: 100%">
+          <iframe id="preview" title="App preview"></iframe>
+        </div>
+        <div class="handle" id="handle" role="separator" aria-orientation="vertical" tabindex="0"
+             aria-label="Resize preview" aria-valuemin="20" aria-valuemax="100" aria-valuenow="100"></div>
+      </div>
+    </div>
+  </section>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+  const app = "APP_HTML_GOES_HERE";
+
+  const MIN_WIDTH = 20;
+  const HANDLE_OFFSET = 6;
+
+  const preview = document.getElementById("preview");
+  const panel = document.getElementById("panel");
+  const panels = document.getElementById("panels");
+  const handle = document.getElementById("handle");
+  const dimensions = document.getElementById("dimensions");
+  const themeButton = document.getElementById("theme");
+  const widthButtons = [...document.querySelectorAll("[data-width]")];
+
+  let isDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  let width = 100;
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  const drawIcons = () => {
+    if (!window.lucide) throw new Error("Lucide did not load; the toolbar has no icons.");
+    lucide.createIcons();
+  };
+
+  const load = () => {
+    preview.src = `${app}?reloaded=${Date.now()}${location.hash}`;
+  };
+
+  const adoptTitle = () => {
+    const title = preview.contentDocument?.title;
+    if (title) document.title = title;
+  };
+
+  const themePreview = () => {
+    try {
+      const root = preview.contentDocument?.documentElement;
+      if (root) {
+        root.classList.toggle("dark", isDark);
+        return;
+      }
+    } catch {
+      // A screen opened over file:// is a foreign origin and can only be reached by message.
+    }
+    preview.contentWindow?.postMessage({ type: "theme", dark: isDark }, "*");
+  };
+
+  const applyTheme = () => {
+    document.documentElement.classList.toggle("dark", isDark);
+    themeButton.title = isDark ? "Switch to light" : "Switch to dark";
+    themeButton.innerHTML = `<i data-lucide="${isDark ? "moon" : "sun"}"></i><span class="sr-only">Switch theme</span>`;
+    drawIcons();
+    themePreview();
+  };
+
+  const applyWidth = (next, animated) => {
+    width = clamp(next, MIN_WIDTH, 100);
+    panel.classList.toggle("animate", animated);
+    panel.style.setProperty("--preview-width", `${width}%`);
+    handle.setAttribute("aria-valuenow", Math.round(width));
+    widthButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", Number(button.dataset.width) === width);
+    });
+  };
+
+  const startDrag = (event) => {
+    handle.classList.add("dragging");
+    handle.setPointerCapture(event.pointerId);
+    preview.style.pointerEvents = "none";
+  };
+
+  const drag = (event) => {
+    if (!handle.classList.contains("dragging")) return;
+    const bounds = panels.getBoundingClientRect();
+    applyWidth(((event.clientX - bounds.left + HANDLE_OFFSET) / bounds.width) * 100, false);
+  };
+
+  const endDrag = () => {
+    handle.classList.remove("dragging");
+    preview.style.pointerEvents = "";
+  };
+
+  const nudge = (event) => {
+    const steps = { ArrowLeft: -5, ArrowRight: 5 };
+    if (!(event.key in steps)) return;
+    event.preventDefault();
+    applyWidth(width + steps[event.key], true);
+  };
+
+  widthButtons.forEach((button) => {
+    button.addEventListener("click", () => applyWidth(Number(button.dataset.width), true));
+  });
+
+  themeButton.addEventListener("click", () => {
+    isDark = !isDark;
+    applyTheme();
+  });
+
+  document.getElementById("reload").addEventListener("click", load);
+  document.getElementById("open").addEventListener("click", () => window.open(`${app}${location.hash}`, "_blank"));
+
+  handle.addEventListener("pointerdown", startDrag);
+  handle.addEventListener("pointermove", drag);
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+  handle.addEventListener("keydown", nudge);
+
+  preview.addEventListener("load", () => {
+    themePreview();
+    adoptTitle();
+  });
+
+  new ResizeObserver(() => {
+    dimensions.textContent = `${panel.clientWidth} × ${panel.clientHeight}`;
+  }).observe(panel);
+
+  applyWidth(100, false);
+  applyTheme();
+  load();
+  drawIcons();
+</script>
+</body>
+</html>
