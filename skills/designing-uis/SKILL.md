@@ -9,13 +9,21 @@ Research before generating. Browse the designer's actual portfolio before making
 
 Browser priority: use your built-in browser first (Claude in Chrome/Edge if I'm signed in, Claude desktop's browser otherwise, asking me to sign in if needed). Fall back to Playwright only if no built-in browser is available, and if so, walk me through setup before proceeding, don't assume it's already configured.
 
+**Three artifacts**
+
+`DESIGN.md` is the taste guide. Read it, never write it. If it's missing, ask; if I don't have one, offer to pick from davidodunjo/design-mds on GitHub instead of inventing a structure. Never infer taste from the existing codebase, the codebase is the aggregate mean with a git history.
+
+`ui.md` is the written description of the UI. Write it in the project root, following the patterns below.
+
+`ui/` holds the mockup. Build it after `ui.md`, never before.
+
 **Establishing taste**
 
 Fence scope first with a numbered feature list, don't design what isn't on it. Research the designer's portfolio live, searched by name never category, category search returns the aggregate mean this skill suppresses. Where a reference implementation exists, it wins on behaviour a still frame can't show; a portfolio wins on arrangement.
 
-**Writing patterns**
+Research is done when you can name the spacing rhythm, type scale, radius, shadow, and colour use, each traced to a specific shot. Report those in chat before writing `ui.md`. They never enter `ui.md`.
 
-Never create DESIGN.md yourself. Ask me for one; if I don't have one, offer to pick from davidodunjo/design-mds on GitHub instead of inventing a structure.
+**Writing patterns**
 
 Open with a Scope section: the numbered feature list, plus what's explicitly out of scope. No pattern below describes a capability absent from that list.
 
@@ -27,6 +35,26 @@ Every paragraph takes one of five forms: the rule, present tense, no hedging; th
 
 Never specify radius, shadow, spacing, type scale, or colour, derive those from reference separately and report back. Tables enumerate a fixed, closed vocabulary only, never "component: description."
 
-Close with a dated review section after the first build: what held, confirmed rule by rule; what's owed, each as a defect plus its correction; scope drift judged explicitly, more than the spec asked for is a spec change, not a design correction; how to read a mockup honestly, a confirmation standing in for a real result is fine, a whole feature reduced to one line of confirmation is a missing screen. Dating the heading makes review an event that gets appended to, not an edit that overwrites.
+Every section that describes a state links to that state by hash, `ui/myapp.html#recording`. A pattern I can't click is a claim I can't check.
 
-Every mock feeding this document is fully interactive, not indicative, `visualize` where available, otherwise generated into `design/` using the Basecoat CDN and Faker for data.
+**The mockup**
+
+One file, the whole app: `ui/<app>.html`, real state and real routing, opened through `ui/viewer.html`. Separate files per screen assert that the screens are separate, which is a design claim the mockup shouldn't make on its own. Split only when the file stops being editable, and split into modules under `ui/parts/`, never into screens.
+
+It opens by double-click, no server, no build step. Basecoat CDN for components, inline SVG for icons, no ES module imports, `file://` blocks them. If a dependency needs a server, the mockup doesn't need the dependency.
+
+Every reviewable state has a hash: `#recording`, `#sync-error`, `#sign-in`. Both routes work, the flow reaches the state and the hash reaches it directly. A state that exists only mid-flow can't be reviewed and doesn't count as built. Deep-linking into a transient state parks there, only the real action advances it, a state I can't sit still in can't be read.
+
+Interactive means every control does what it claims: the recorder records, the retry retries, the form rejects bad input. A control that does nothing on click is a defect, not a placeholder. Fake the backend in the file and say so in the review section.
+
+Ship the empty, loading, and error state of every screen alongside the populated one. The populated state is the easiest and least informative; a spec reviewed only in that state has not been reviewed.
+
+Theme is a `.dark` class on `<html>`, plus a listener for `{ type: "theme" }` messages from the viewer. Never `prefers-color-scheme`, a parent frame can't override a media query, so a media-query mockup ignores the theme toggle and gets reviewed in one theme only.
+
+Write the data by hand, in the product's own domain: real names, real record volumes, notes that read like something I would actually write. Generators produce plausible-looking nothing and cost a review cycle each time the data reshuffles. Copy is design content and gets the same scrutiny as spacing.
+
+The viewer is not yours to redesign. It hosts the app and nothing else, no title bar, no screen picker, no code panel.
+
+**Review**
+
+Close with a dated review section after the first build: what held, confirmed rule by rule; what's owed, each as a defect plus its correction; scope drift judged explicitly, more than the spec asked for is a spec change, not a design correction; how to read a mockup honestly, a confirmation standing in for a real result is fine, a whole feature reduced to one line of confirmation is a missing screen. Dating the heading makes review an event that gets appended to, not an edit that overwrites.
