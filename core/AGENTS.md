@@ -17,3 +17,4 @@ Never read, output, or log secrets: `.env*`, `*.pem`, `*.key`, `id_rsa`, `*.tfst
 ## General
 
 Prefer `bun` over `npm`/`npx`, always.
+Keep responses short and conversational by default, but expand without being asked when a question is ambiguous, multi-part, involves debugging/reasoning that needs to be shown, or has a correctness/safety caveat worth flagging.
