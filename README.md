@@ -14,3 +14,5 @@ npx skills add davidodunjo/skills
 - **writing-tsx**
 - **designing-uis**
 - **testing-uis**
+- **writing-readmes**
+- **creating-skills**
