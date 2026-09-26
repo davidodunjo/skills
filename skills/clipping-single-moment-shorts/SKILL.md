@@ -1,0 +1,60 @@
+---
+name: clipping-single-moment-shorts
+description: Use when cutting a single-moment streamer Short, one story told full-bleed with jump cuts and speaker-coloured captions, from a YouTube video with yt-dlp and Diffusion Studio.
+---
+
+A Short is one self-contained moment from a stream, 10 to 35 seconds, told as a story: full-bleed 9:16 jump cuts that reframe onto whoever is funniest, pauses cut out, one big uppercase caption word at a time coloured by speaker, and a colour flash on the punchline. It is the sibling of `clipping-streamer-shorts` (the ranked countdown) and reuses that skill's downloader, so both skills must be installed side by side; everything new lives in this folder (`scripts/`, `template/`), so the agent fills in parameters rather than rewriting the plumbing. Free paths come first everywhere, YouTube's auto-captions or a local Whisper model instead of Diffusion's paid `media listen` and `media transcribe`, since credits cost real money and the free plan is a one-time 50.
+
+Before any download, state its size in MB and choose the smallest viable option, never a full video, this is a hard preference, not a courtesy. Channel format decisions live in the channel's own docs (for TheShortlist, `C:\Users\DavidOdunjo\Codebase\YouTube\TheShortlistOfficial\docs\decisions.md`, and this style's research in `styles\single-moment\README.md`), read them first and let them win over the house style below when they disagree.
+
+**Diffusion Studio docs**
+
+Defer to the app's own agent docs for every JSX and tool detail, they are versioned with the install and this skill doesn't repeat them. They live at `%LOCALAPPDATA%\DiffusionStudio\app-<version>\resources\docs`, the version changes on update, so glob `app-*`. Read `skills/editor.md` first, then the `reference/jsx` pages for whatever is being touched: `text.md`, `styles.md` for the caption stroke, `fonts.md`, `timing.md`, `sequences.md`, `rect.md`, `animations.md`, `audio.md`, and the Ids section of `module.md`. Drive the app from the CLI at `%LOCALAPPDATA%\DiffusionStudio\bin\diffusion.cmd` when the MCP server is down, both surfaces take the same tools.
+
+**Finding the moment**
+
+Freshness decides whether a Short can win, a moment another channel has already clipped is worth little, so prefer streams and VODs from the last 24 to 48 hours. Search with `yt-dlp --flat-playlist "ytsearch10:<streamer> <topic>"` and confirm the uploader from each result's `channel_url`, since guessed handles are often someone else. Try the most-replayed heatmap first, `yt-dlp -j --skip-download <url> | bun ../clipping-streamer-shorts/scripts/peaks.ts`, but it often returns nothing for videos under a few weeks old even with hundreds of thousands of views, so the usual path is reading the transcript (next section) for a story with a setup and a punchline. Before cutting, check nobody has clipped it yet: `yt-dlp --flat-playlist --print "%(title)s | %(channel)s | %(url)s" "ytsearch20:<streamer> <key phrase>"` and look for Shorts of the same moment, and if one exists pick another.
+
+The moment must stand alone with no prior context, 10 to 35 seconds, its first frame already mid-moment and its first caption word the hook, no intro, and it ends right after the punchline word, trimming any word of the next sentence that trails in.
+
+**Transcript**
+
+YouTube's auto-captions are free, `yt-dlp --skip-download --write-auto-subs --sub-langs en --sub-format json3 -o "<project>/_session/%(id)s" <url>`, but they get HTTP 429 rate-limited after a handful of requests and retries with sleeps don't clear it for many minutes, so fall back to a local transcript rather than waiting. `python scripts/transcribe.py <audio> <project>/_session/<id>.en.json3` runs faster-whisper (`base.en`, CPU int8, word timestamps, VAD) and writes the same json3 shape, so everything downstream reads it unchanged; install it once with `pip install faster-whisper` (about 100 MB, plus the model at about 145 MB on first run), and expect about 4 minutes per 14 minutes of audio on David's CPU (no NVIDIA GPU). Download only the audio for it, `yt-dlp -f <audio id> -o "<project>/_session/%(id)s.audio.%(ext)s" <url>`, after stating its size from `-F`.
+
+Some videos carry AI-dubbed audio in around 20 languages, their format ids get suffixes (`251-19`) and a bare `251` fails with "Requested format is not available". Run `yt-dlp -F <url>` first and take the audio marked `original (default)`, for both the transcript download and the clip download, a generic selector like `ba[acodec=opus]` may pick a dub.
+
+**Downloading**
+
+Use the sibling's downloader, it fetches only the bytes around the moment: `python ../clipping-streamer-shorts/scripts/clip.py <url> <project> moment=<start>-<end> --audio <original id> --estimate` prints the size (it only fetches the two stream headers, about 2 MB), report it, then rerun without `--estimate`; Short #002's clip, 54 seconds once padded to the nearest clusters, was 17 MB at VP9 1080p. It writes `assets/a-roll/moment.mp4` and prints `fileZero` (the source time of the file's first frame) and the unpadded `sourceIn`/`sourceOut` in file time, paste `fileZero` into `shots.ts`. `--estimate` has returned HTTP 403 once and succeeded on rerun, rerun once before debugging, and stream URLs expire after a few hours.
+
+**Building the project**
+
+Each Short is its own folder, named by its number then its slug (for TheShortlist, `C:\Users\DavidOdunjo\Videos\TheShortlist\<NNN>-<slug>\`, e.g. `002-zlatan-roasts-marlon`). Only the folder carries the number; the scene name, the export file and `upload.json`'s `video` path share the same lower-kebab slug, named after the content, never a generic name. Copy `template/index.tsx`, `template/shots.ts` and `template/words.ts` into it, set the scene's `name` to the slug, then open it in the foreground with `diffusion open <abs dir>`, never `-b`, so David can watch the edit happen; it keeps the files and adds the project record to `package.json`. The app rewrites `index.tsx` after every compile to stamp ids, so re-read it before each edit. The scene carries `id="short"`, so `check short`, `capture short` and `export short` address it without looking the id up. Always edit in Diffusion Studio, never render the Short another way.
+
+`shots.ts` is the single source of truth: `SOURCE_URL`, `CLIP`, `FILE_ZERO`, then `SHOTS`, one entry per jump cut in order, with `from`/`to` in file seconds, `center` as the source pixel the 9:16 crop centres on, and `zoom` (1 shows the full 1080 px height). The timeline is the shots laid end to end, so any gap between one shot's `to` and the next one's `from` is cut out, which is how pauses are removed: end a shot on the last word before a pause and start the next on the first word after it, reading word times off the transcript. Two shots may share a boundary with a new `center` or `zoom`, that is a punch-in cut without losing a frame. `SPEAKERS` marks who is talking on camera by file time (`main`, `second`), everything outside them is the off-camera voice. `FIXES` respells names the transcript mishears, lowercase as heard, e.g. `{ marlin: "Marlon" }`. `PUNCH` is the file time of the punchline beat.
+
+**Framing**
+
+Look before cropping: `diffusion media grab <abs clip> -c 12 -s <in> -e <out>` gives a contact sheet, read it and map each face's x position to source pixels (the source is 1920×1080). A zoom-1 9:16 window is only about 608 px of the 1920 width, so it holds one person, not two: follow the speaker, and cut to the other person's reaction when that is funnier (hiding their face, collapsing, laughing) even while the speaker keeps talking, since the audio runs on regardless. Zoom 1.2 to 1.5 punches in on a face for a beat. The template computes each crop from `center` and `zoom`, clamped to the source, and scales the whole video node so the region fills the frame, the scene clips the rest, so no masks are needed. Aim for a cut every 1.5 to 2.5 seconds, the reference channel's pace; Short #002 cut about every 4.
+
+**Captions**
+
+Run `bun scripts/make-words.ts <project> <project>/_session/<id>.en.json3`, it writes `words.ts` (one word per entry, timeline start and end, speaker) laid over the cut-down timeline, fixes names from `FIXES`, masks swears (`sh*t`, `f**k`), uppercases, strips trailing punctuation, and caps each word's hold at 0.8 s. It prints the word count and timeline length, rerun it after every change to `shots.ts`, timeline times shift whenever any shot's length does. Captions mask swears but the template doesn't bleep the audio yet.
+
+**House style**
+
+The approved look, Short #002 (`C:\Users\DavidOdunjo\Videos\TheShortlist\002-zlatan-roasts-marlon\exports\zlatan-roasts-marlon.mp4`, 28.7 s), is what the template renders, change only its `@inspect` values per Short. A full-bleed 1080×1920 scene of jump cuts, no header, bars or rank. Captions one `<text>` per word, Bahnschrift 700 at 132 px, uppercase, centred at y 1180, with a 16 px black round-join `<stroke>`, coloured by speaker: main streamer white `#FFFFFF`, second person yellow `#FFE14D`, off-camera voice pink `#FF7AD9`, kept the same within a Short. On the punchline a `#39FF14` rect with `blendMode="color"` at 0.55 opacity tints the frame for 0.35 s and fades out. Source audio only, with pauses cut.
+
+**Sound effects**
+
+Not built yet, the style's research calls for whooshes or hits on cuts and punchlines. `shots.ts` has an `SFX` list of `{ file, at }` in file time as the hook, and `index.tsx` doesn't render it. Sounds must come from a library that allows YouTube use (YouTube Audio Library or Pixabay sound effects), never cut from other channels' videos, and live in the channel's `styles/single-moment/sfx/` with their source recorded there, copied into the project's `assets/sfx/`. When wiring them, don't put `<audio>` inside a `<For>`: the app stamps one id per JSX element, not per loop instance, so every instance shares an id and only the first plays. Either render one combined timeline-long track with ffmpeg, as the sibling's `captions.ts` does for its bleeps, and play it once from 0, or write each `<audio>` out by hand so each gets its own id.
+
+**Verifying and exporting**
+
+Run `diffusion check short` until it reports no issues and a duration matching the timeline `make-words.ts` printed, then `diffusion capture short -t ...` at every shot, at 0.1 s either side of each cut and on the flash, and read the sheets: fix any crop that cuts a face by moving its `center` or dropping its `zoom`. Export only when David asks, with `diffusion export short <abs project>\exports\<slug>.mp4`, the defaults give 1080×1920 H.264.
+
+The Short ends by handing off to its `upload.json` in the project folder, `video` pointing at the export; uploading is not part of this skill. Its fields and rules live in the channel's upload doc (for TheShortlist, `docs\uploading.md`), take Short #002's `upload.json` as the reference. The title tells the story, `<Streamer> <does something> <to or in front of someone>!`, title case with one or two emojis; the description repeats it with emojis, quotes the punchline, credits the source with its link (`Full video: <SOURCE_URL>`), then "Subscribe for more!" with the channel link and a few hashtags.
+
+**Housekeeping**
+
+Name the folder right when you create it, renaming later is painful because Diffusion Studio locks an open project's folder; the sibling skill's Housekeeping section has the recovery steps. After a Short is published, log it in the channel's progress doc and record any format change in `decisions.md` and the style's README, so the docs always describe what was actually shipped.
