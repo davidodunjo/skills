@@ -1,6 +1,7 @@
 import { For } from "solid-js";
 import { CLIP, PUNCH, SHOTS, type Shot, type Speaker } from "./shots";
 import { WORDS } from "./words";
+import { BLEEPS } from "./bleeps";
 
 /** @inspect font path="Captions/Font" */
 const captionFont = "Bahnschrift";
@@ -22,6 +23,9 @@ const offCameraColor = "#FF7AD9";
 
 /** @inspect color path="Flash/Color" */
 const flashColor = "#39FF14";
+
+/** @inspect number path="Audio/Bleep volume" min=-40 max=0 step=1 */
+const bleepVolume = -12;
 
 const W = 1080;
 const H = 1920;
@@ -46,14 +50,50 @@ function crop(shot: Shot) {
   return { width: SOURCE_W * scale, height: SOURCE_H * scale, x: W / 2 - cx * scale, y: H / 2 - cy * scale };
 }
 
+/**
+ * Cuts a shot into audible/muted pieces at any bleep windows inside it. `<video volume>` (static or
+ * keyframed) is silently ignored at export time in this Diffusion Studio build, only the boolean
+ * `muted` prop actually silences a clip, so each swear gets its own zero-frame-lost sub-cut instead
+ * of a volume keyframe — the same shared-boundary punch-in technique `shots.ts` already uses.
+ */
+function splitAtBleeps(shot: Shot): { from: number; to: number; muted: boolean }[] {
+  const windows = BLEEPS.map((bleep) => [Math.max(bleep.sourceTime, shot.from), Math.min(bleep.sourceTime + bleep.duration, shot.to)] as const)
+    .filter(([from, to]) => from < to)
+    .sort((a, b) => a[0] - b[0]);
+  const pieces: { from: number; to: number; muted: boolean }[] = [];
+  let cursor = shot.from;
+  for (const [from, to] of windows) {
+    if (from > cursor) pieces.push({ from: cursor, to: from, muted: false });
+    pieces.push({ from, to, muted: true });
+    cursor = to;
+  }
+  if (cursor < shot.to) pieces.push({ from: cursor, to: shot.to, muted: false });
+  return pieces;
+}
+
+interface Clip {
+  shot: Shot;
+  from: number;
+  to: number;
+  muted: boolean;
+  start: number;
+}
+
+const clips: Clip[] = SHOTS.flatMap((shot, i) => {
+  let cursor = starts[i]!;
+  return splitAtBleeps(shot).map((piece) => {
+    const start = cursor;
+    cursor += piece.to - piece.from;
+    return { shot, ...piece, start };
+  });
+});
+
 export default function Project() {
   return (
     <stage background="#161616">
       <scene id="short" name="streamer-does-something" width={W} height={H} fill="black" active>
         <sequence name="Shots">
-          <For each={SHOTS}>
-            {(shot, i) => <video src={CLIP} start={starts[i()]!} sourceIn={shot.from} sourceOut={shot.to} {...crop(shot)} />}
-          </For>
+          <For each={clips}>{(clip) => <video src={CLIP} start={clip.start} sourceIn={clip.from} sourceOut={clip.to} muted={clip.muted} {...crop(clip.shot)} />}</For>
         </sequence>
 
         <rect name="Punch flash" x={0} y={0} width={W} height={H} fill={flashColor} blendMode="color" opacity={0.55} start={PUNCH_AT} end={PUNCH_AT + FLASH_LENGTH}>
@@ -81,6 +121,8 @@ export default function Project() {
             </text>
           )}
         </For>
+
+        {BLEEPS.length > 0 && <audio name="Bleeps" src="sfx/bleep-track.wav" start={0} volume={bleepVolume} />}
       </scene>
     </stage>
   );
