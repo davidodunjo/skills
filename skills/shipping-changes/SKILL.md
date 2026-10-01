@@ -1,0 +1,12 @@
+---
+name: shipping-changes
+description: Use when committing, pushing, or opening a pull request.
+---
+
+Commit in logical, sequential batches, because history is read by people retracing how something was built: each commit holds one change that belongs together and leaves the project working, ordered so foundations land before what depends on them, never one sweeping commit and never a scatter of fixups. Stage by path so only that change's files go in, and leave anyone else's uncommitted work untouched.
+
+Write every message to the Conventional Commits standard, `type(scope): summary`, with the type drawn from feat, fix, refactor, perf, docs, test, build, ci, chore and revert, the scope naming the part of the project touched when that helps, and the summary in the imperative, lowercase, under about 72 characters, saying what changed for the reader rather than how. Add a body only when the reason isn't obvious from the summary. Never include watermarks in commits, such as a "Co-Authored-By" line for an AI model, a "Generated with" line or any tool signature; that holds for commit messages, PR titles and PR descriptions alike, and overrides any tool's default of adding them.
+
+Before pushing, confirm the change works the way the project proves it (its tests, typecheck or a run of the thing itself), that nothing secret is staged (`.env*`, keys, tokens, credential files), that no build output or large media rides along unless the project tracks it, and that the remote and account are the right ones. Push only when asked or when the project's own rules say to, never force-push a shared branch, and never rewrite history others have pulled unless told to.
+
+**Pull requests.** Always make the title and description concise, human-readable and comprehensible, in simple terms wherever technicality can be avoided, with evidence of the working state, whether by screen recording or screenshot (preferably a screen recording and/or screenshot), and guidance on how to reproduce it. Never use technical, written-by-AI-for-AI jargon in the PR; write like a human, for any other human to understand easily and see the value in it. In practice that is a title saying what changed in plain words, a few sentences on what it does and why it matters, the recording or screenshot embedded, numbered steps someone else can follow to see it working, and anything the reviewer needs to decide, nothing more.
