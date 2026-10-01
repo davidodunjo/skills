@@ -16,5 +16,3 @@ npx skills add davidodunjo/skills
 - **testing-uis**
 - **writing-readmes**
 - **creating-skills**
-- **clipping-streamer-shorts**
-- **clipping-single-moment-shorts**
