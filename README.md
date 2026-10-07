@@ -16,4 +16,4 @@ npx skills add davidodunjo/skills
 - **testing-uis**
 - **writing-readmes**
 - **creating-skills**
-- **shipping-changes**
+- **pushing-changes**
