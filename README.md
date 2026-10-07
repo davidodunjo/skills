@@ -12,7 +12,6 @@ npx skills add davidodunjo/skills
 
 - **writing-code**
 - **writing-tsx**
-- **designing-uis**
 - **creating-skills**
 - **pushing-changes**
 - **delegating-to-subagents**
