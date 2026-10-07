@@ -17,3 +17,4 @@ npx skills add davidodunjo/skills
 - **creating-skills**
 - **pushing-changes**
 - **delegating-to-subagents**
+- **writing-prose**
