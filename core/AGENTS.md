@@ -14,6 +14,10 @@ Always identify any issues and suggest improvements, even before implementation,
 
 Never read, output, or log secrets: `.env*`, `*.pem`, `*.key`, `id_rsa`, `*.tfstate`, `*.tfvars`, or anything named like it holds credentials. If a secret is ever exposed to you in this session (pasted, printed, committed), stop and tell me exactly what to rotate and where.
 
+## Workflows
+
+For any workflow with several dependent steps, that changes state outside the repo (installs, cloud resources, bulk file changes), or that runs long, write a script instead of running the steps yourself. Make it idempotent, resumable and retryable (follow `writing-powershell`, or `writing-code` for other languages), show it to me, and run it only after I say so. If a run breaks, fix the cause and re-run the same script so it picks up where it stopped; never restart the workflow from scratch or redo finished steps by hand. One-off or trivial actions don't need a script.
+
 ## General
 
 Prefer `bun` over `npm`/`npx`, always.
