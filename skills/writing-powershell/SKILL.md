@@ -1,0 +1,18 @@
+---
+name: writing-powershell
+description: Use when writing or editing a PowerShell script (.ps1).
+---
+
+Target the latest PowerShell 7 and nothing older: start with `#Requires -Version 7`, `Set-StrictMode -Version Latest`, `$ErrorActionPreference = 'Stop'` and `$PSNativeCommandUseErrorActionPreference = $true`, so a mistake fails loudly instead of limping on, and use 7's own features (`ForEach-Object -Parallel`, `Start-ThreadJob`, `??`, ternaries) rather than 5.1 workarounds. Run entirely in the terminal it was started in, so it works the same in Windows Terminal or any other host: never open a new window, relaunch itself, or use `-NoExit`, and when it needs elevation, say so and stop instead of spawning an elevated copy. Check the preconditions up front (tool installed, logged in, elevated, network reachable) and say in the error what to do about each, so it fails in the first second with a fix rather than in the middle with a stack trace.
+
+Make every step idempotent by reading the real current state first and doing nothing when the work is already done: model a step as a name, a "done?" check and an action, print `done`, `doing` or `would` for each, and let `-WhatIf` report the plan without changing anything. Trust the state of the world over a saved flag, because a flag can lie after a crash and a check cannot. Re-running the same command must finish whatever was interrupted and change nothing else.
+
+Make it resumable by checkpointing after every unit of work, not at the end, writing the progress file to a temporary name and renaming it over the real one so a crash never leaves it half-written. Let saved progress expire, offer a switch to ignore it, hold a single-instance lock so two copies can't collide, and put the cleanup in `finally`: stop child processes, save state, release the lock. Test it by killing the script mid-run and running it again.
+
+Make it retryable by classifying outcomes instead of treating every failure alike: a table of exit codes mapped to success, already-done, retryable and fatal, with retries limited to the retryable ones, backed off, and a timeout on every external call so a hung process can't hang the script. Fatal errors stop immediately, failed items are reported by name and re-run alone next time, and the exit code is non-zero if anything failed.
+
+Make it fast without being reckless: run independent work in parallel with a bounded number of slots and keep anything that contends for a shared resource serial, scan expensive sources once and reuse the result, ask the tool to filter (`--query`) rather than filtering in the pipeline, prefer .NET calls over cmdlets inside hot loops, and set `$ProgressPreference = 'SilentlyContinue'` because the progress bar slows downloads dramatically.
+
+Treat destruction and secrets as the dangerous parts. Back up before deleting and confirm the backup is complete before the delete runs, refuse to touch a protected path or anything the script can't prove is its own, ask before deleting unless `-Force` is passed, and offer a dry run. Never print a secret: generate it, write it through a temporary file, remove the file in `finally`, and keep it out of logs.
+
+Give it an interface a stranger can use: a comment-based help block at the top with a synopsis, every switch with an example command, and what resuming does, which is the one place a comment earns its keep. Name the file with an approved verb (`Verb-Noun.ps1`), use `[ValidateSet]` and `[ValidateRange]` on parameters, `-LiteralPath` and `Join-Path` for paths, and `$env:` variables, `$HOME` and `$PSScriptRoot` instead of hard-coded locations. Print one line per step as it happens, then a summary table with durations, the log location and what to do next, in plain English.
