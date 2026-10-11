@@ -17,3 +17,4 @@ npx skills add davidodunjo/skills
 - **delegating-to-subagents**
 - **writing-prose**
 - **writing-powershell**
+- **challenging-scope**
