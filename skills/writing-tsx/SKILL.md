@@ -5,7 +5,7 @@ description: Use when writing or editing frontend code in TSX & React.
 
 Stack-agnostic within React/TSX: describes structure, naming, shape and quality, naming a library only where one is the clear modern default. Overlaps with `writing-code`; these rules win within frontend scope. A repo's own structure or convention document wins over this skill wherever the two disagree, and the libraries a repo already uses win over the defaults named here.
 
-This file holds the rules every frontend change needs. Before working in an area, read its file from **Going deeper**; each one stands alone and loads only when the work touches it.
+This file holds the rules every frontend change needs; the guides in **Going deeper** hold the rest and are not summarised here. Before writing code for a new feature or page, read ARCHITECTURE.md, ROUTING.md, DATA.md, FORMS.md and POLISH.md in full, because their rules decide structure, data flow, validation and every non-happy state, and code written without them has to be redone. Read any other guide before the work touches its area.
 
 **Components**
 
@@ -13,7 +13,7 @@ Components are named function declarations, never arrow consts. Export style mat
 
 **Files and folders**
 
-A file earns a folder only when it gains private companions: once a component needs sub-components, hooks or types that nothing else uses, it becomes a folder named after it holding the component and those companions, and inside each kind of folder, code belonging to one resource groups under a folder named for that resource (`api/hooks/contacts/`, `api/hooks/tags/`) once the feature has two or more resources, with one file per query-options factory or operation inside it. Never create a folder for a single file or ahead of need. When a second consumer appears, move the shared piece up to the nearest folder both consumers already live under, not to a global shared folder. Components are PascalCase files, other modules camelCase, hooks start with `use`, `.tsx` only when the file contains JSX.
+A file earns a folder only when it gains private companions: once a component needs sub-components, hooks or types that nothing else uses, it becomes a folder named after it holding the component and those companions, and inside each kind of folder, code belonging to one resource groups under a folder named for that resource (`api/hooks/contacts/`, `api/hooks/tags/`) once the feature has two or more resources, with one file per query-options factory or operation inside it. A form whose repeatable field groups exist only for it is `forms/ProjectForm/` holding `ProjectForm.tsx`, `MemberFields.tsx` and `LinkFields.tsx`; a list whose row nothing else renders is `ui/TaskList/` holding `TaskList.tsx` and `TaskListRow.tsx`. Once a second consumer imports the row, it moves out beside the folder. Never create a folder for a single file or ahead of need. When a second consumer appears, move the shared piece up to the nearest folder both consumers already live under, not to a global shared folder. Components are PascalCase files, other modules camelCase, hooks start with `use`, `.tsx` only when the file contains JSX.
 
 **Conventions**
 
@@ -21,20 +21,20 @@ Formatting belongs to the project formatter. Unused imports error, unused vars w
 
 **Done**
 
-Passing type checks and lint is not done. Run the app, open every route the change touches in a browser, exercise each interaction it adds (create, edit, delete, search, going back), and read the console; a route that renders the wrong view or logs an error is a failed task. Say plainly what could not be checked.
+Passing type checks and lint is not done. Run the app, open every route the change touches in a browser, exercise each interaction it adds (create, edit, delete, search, going back), and read the console; a route that renders the wrong view or logs an error is a failed task. Say plainly what could not be checked. Run the project's verify command last, after every file, including notes and docs, has been written; a check that ran before the final edit proves nothing.
 
 **Going deeper**
 
-- [ARCHITECTURE.md](ARCHITECTURE.md): feature slices, import direction, where shared code lives.
-- [ROUTING.md](ROUTING.md): file routes, loaders, typed params, search params as state, pending and error UI.
-- [DATA.md](DATA.md): server state, query factories, keys, mutations, optimistic updates, services.
+- [ARCHITECTURE.md](ARCHITECTURE.md) **(required)**: feature slices, import direction, where shared code lives.
+- [ROUTING.md](ROUTING.md) **(required)**: file routes, loaders, typed params, search params as state, pending and error UI.
+- [DATA.md](DATA.md) **(required)**: server state, query factories, keys, mutations, optimistic updates, services.
 - [STATE.md](STATE.md): which kind of state lives where, stores, context, derived state.
-- [FORMS.md](FORMS.md): schemas, field arrays, submission, server errors.
+- [FORMS.md](FORMS.md) **(required)**: schemas, field arrays, submission, server errors.
 - [COMPONENTS.md](COMPONENTS.md): component APIs, composition, variants, styling, design tokens.
 - [ACCESSIBILITY.md](ACCESSIBILITY.md): semantics, focus, keyboard, shortcuts, command palette.
 - [MOTION.md](MOTION.md): when and how things move, transitions, reduced motion.
 - [TABLES.md](TABLES.md): data tables, server-driven filtering, virtualization.
-- [POLISH.md](POLISH.md): loading, empty and error design, feedback, density, the details that make it feel premium.
+- [POLISH.md](POLISH.md) **(required)**: loading, empty and error design, feedback, density, the details that make it feel premium.
 - [TYPE-SAFETY.md](TYPE-SAFETY.md): contracts, parsing at boundaries, no casts.
 - [TESTING.md](TESTING.md): what to test, where tests live, browser and end-to-end tests.
 - [PERFORMANCE.md](PERFORMANCE.md): compiler, memoization, splitting, measuring.
