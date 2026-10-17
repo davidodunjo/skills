@@ -1,0 +1,11 @@
+# Tables and data-heavy UI
+
+A data table is a view over server state whose shape lives in the URL: page, page size, sort, filters and search are validated search params, the loader and query key are built from them, and the table renders what the server returned for that state. That makes every view shareable, survives a reload, and works with the back button. Sort, filter and paginate on the server once a collection can outgrow a few hundred rows; do it on the client only for small, fully loaded sets, and never mix the two for one table.
+
+Use a headless table library for column definitions, sorting state, selection and visibility, and render it with the design system's table primitives, so behaviour and look stay separate. Column definitions live in their own module beside the table, typed against the row, each column owning its header, cell renderer, sort and filter behaviour and its width or minimum width. Cells format values through shared formatters (dates, money, numbers with tabular figures, relative times) so the same field reads the same everywhere.
+
+The toolbar above the table holds search, filters as removable chips, a view options menu for column visibility and density, and the primary action; bulk actions appear in place of the toolbar when rows are selected, with the selection count and a way to clear it. Filters show what is applied and how many results remain. Pagination shows the range and total, and preserves the other params when it changes.
+
+Long lists and large tables are virtualized once they pass roughly a hundred rows rendered at once, with stable row heights or measured ones, sticky headers and sticky group labels, and scroll position restored when the user comes back. Infinite scrolling fits feeds; tables people scan, compare or return to get pagination.
+
+Every table state is designed: a skeleton of the real columns while loading, an empty state that distinguishes "nothing yet" (with the create action) from "nothing matches" (with a clear-filters action), an inline error with retry, and a row-level pending state for optimistic edits. Rows that open a record are real links, keyboard reachable, with the whole row clickable but interactive cells keeping their own behaviour. Truncate long text with the full value available on hover or focus, and align numbers right.
