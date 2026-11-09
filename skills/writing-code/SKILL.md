@@ -5,6 +5,10 @@ description: Use when writing or editing code in any language.
 
 Write the least code that does the job and reads at a glance. These rules have no exceptions. A repo's conventions override only naming and formatting. When unsure, write less.
 
+**Before writing**
+
+Search for existing code that does this, then for a language or platform feature. Write new code only if neither exists. Before changing stored data, find out how much there is, whether writes continue during the run, and whether downtime is allowed. Ask if the repo cannot answer.
+
 **Functions**
 
 Write code inline. Create a function only when two or more places call it, or when something outside the file calls it. A function only one other function calls gets inlined into it. Never wrap a call to rename it.
@@ -37,11 +41,15 @@ Imports, setup, constants, logic, execution, in that order. Related lines sit to
 
 Comment only a fact the code cannot show. Never restate the code.
 
+**Safety**
+
+Assume any line can crash and the whole thing reruns. Code that changes state selects only unfinished work, so a rerun resumes and a finished run changes nothing. Each write leaves a record fully old or fully new. Use the platform's atomic and bulk operations, never hand-written loops, retries or locks. Do the work where the data lives, never fetch everything to loop over it. End by proving the final state, and fail if it is wrong. Write only the fields you own, because another writer can change a record between your read and your write. Never remove old data until its replacement exists.
+
 **Errors**
 
 Validate untrusted input where it enters. Never swallow an error or hide it behind a fallback. Never hardcode a secret.
 
-**Example**
+**Examples**
 
 Wrong:
 
@@ -52,6 +60,15 @@ Right:
 
     const orderTotal = orderItems.reduce((sum, orderItem) => sum + orderItem.price, 0);
 
+Wrong:
+
+    const allProducts = await products.find().toArray();
+    for (const product of allProducts) await products.updateOne({ _id: product._id }, { $set: { priceInCents: product.price * 100 } });
+
+Right:
+
+    await products.updateMany(hasNumericPrice, convertPriceToCents);
+
 **Done**
 
-Run what you changed. Then reread every line and delete whatever breaks a rule.
+Name the second caller of every function you added, or inline it. Name why a person would look up every file you added, or merge it. For code that changes state, interrupt it, rerun it, then rerun it again. Run what you changed and state exactly what could not be run. Then reread every line and delete whatever breaks a rule.
