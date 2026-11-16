@@ -3,7 +3,7 @@ name: designing-uis
 description: Use when designing or changing a UI: its look, layout, controls, feedback, hints or motion.
 ---
 
-Almost every "this feels right" has a physical or logical cause, so taste is a set of decisions with reasons, followed strictly, because a rule that bends for each screen stops being a rule. Two concerns lead every decision, low bandwidth and feedback, and the rest serves them. The project's own taste doc wins over this skill, and where a rule already speaks, never invent a second opinion. When asked to add behaviour, port the behaviour and leave the look alone, because a redesign that carries the feature loses what the person liked.
+Almost every "this feels right" has a physical or logical cause, so taste is a set of decisions with reasons, followed strictly, because a rule that bends for each screen stops being a rule. Three concerns lead every decision, low bandwidth, feedback and consistency, and the rest serves them. The project's own taste doc wins over this skill, and where a rule already speaks, never invent a second opinion. When asked to add behaviour, port the behaviour and leave the look alone, because a redesign that carries the feature loses what the person liked.
 
 **Low bandwidth**
 
@@ -12,6 +12,10 @@ A screen should take almost no effort to understand, because people read picture
 **Feedback**
 
 Every action answers, even the most granular, because an action with no answer reads as broken and makes the person do it again. Within 100ms of a press, hover, toggle, drag, copy, save or failure, something in the interface responds, visually, by sound, or both, and the response confirms the result, not just the touch: a copy icon becomes a check, a saved item settles into place, a picked option closes its menu, a failure shakes or marks the field in place. Judge the form by the product's material and feel, and be inventive within it: a paper interface rustles and creases, a terminal-styled one types, a calm one answers softly, so feedback reads as part of the world rather than bolted on. Sound is short, quiet, preloaded and one sound per meaning, plays only for the person's own actions, never on load or passive events, and has a setting to turn it off. On touch, a light haptic can stand in for sound. Show the result where it happened before reaching for a toast, and never let a success pass silently.
+
+**Consistency**
+
+A new screen should look like it came from the same hand as the rest, because an interface that changes its rules from page to page makes the person relearn it, and novelty that ignores the system reads as a mistake, not a design. Be novel inside the system, never beside it: reuse the app's own components, spacing scale, type sizes, icon sizes, radii and colours, and put recurring things where they already live, so a close button, a back button, a header or a primary action sits in the same place and at the same size on every screen. Align to the edges and columns the page already uses. Before adding a size, gap or position, find where the app already solved the same problem and match it, and if something truly needs a new value, add it to the system once rather than inline in one place.
 
 **Samples before code**
 
