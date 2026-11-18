@@ -1,0 +1,12 @@
+---
+name: optimizing-against-a-judge
+description: Use when a working thing must get measurably better (speed, size, flake rate, score) and the obvious fixes have stalled.
+---
+
+Freeze the judge before touching the method, because an agent that can edit its own evaluation will find the cheapest way to look better rather than be better. Name one metric and one command that produces it, run it on the current state to get a baseline, and record both in an `experiments.md` at the repo root. From then on the benchmark, its inputs, the tests and the scoring script are read-only; if the judge itself turns out to be wrong, stop and tell David instead of fixing it mid-run. Keep a held-back check the loop never optimizes against, such as the full test suite or a second input set, and run it only at the end, so a win on the metric that breaks something else gets caught.
+
+Everything else is open, and the method is the thing to rewrite. Don't stop at tuning the parameters of the current approach: replace it if the numbers say so. Swap the algorithm, the data structure, or the library, move work to build time, delete the feature path, invert who calls whom. Before each attempt, write in `experiments.md` the hypothesis, the mechanism you think will move the metric, and what result would prove it wrong. At least every third attempt should come from a different family than the last two, so the search doesn't collapse into small variations on one idea.
+
+Run each attempt on its own commit, measure it, and log the number next to the hypothesis. Keep it if it beats the best so far; otherwise revert. When an approach fails twice, write a ban line ("never X again: why") and honor it. When a change works for a reason other than the one you predicted, say "mechanism was wrong" in the log and update your model, because a lucky win with a wrong theory points the next attempt the wrong way. Every few attempts, reread the whole log and step back: is the bottleneck where you assumed, and is there a reframing (only the end state counts, or the work need not happen at all) that makes the problem smaller?
+
+Stop on a budget set at the start (attempts or wall time), on three attempts in a row with no gain, or when the gain stops being worth the complexity. Finish on the best commit, run the held-back check, and report baseline against final, the winning mechanism, the bans, and whether the winner is a known technique, so David can judge whether the agent found something or just rediscovered something.
